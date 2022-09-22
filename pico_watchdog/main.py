@@ -31,32 +31,34 @@ WLAN_TIMEOUT = 5
 BLINK_INTERVAL = 500  # ms
 
 # Connect to WIFI
+def run():
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(SSID, WIFI_PASSWD)
 
-wlan = network.WLAN(network.STA_IF)
-wlan.active(True)
-wlan.connect(SSID, WIFI_PASSWD)
+    time_elapsed = 0
 
-time_elapsed = 0
+    while time_elapsed < WLAN_TIMEOUT:
+        if wlan.status() < 0 or wlan.status() >= 3:
+            break
+        time_elapsed += 1
+        print('WLAN: waiting for connection...')
+        time.sleep(1)
 
-while time_elapsed < WLAN_TIMEOUT:
-    if wlan.status() < 0 or wlan.status() >= 3:
-        break
-    time_elapsed += 1
-    print('WLAN: waiting for connection...')
-    time.sleep(1)
+    if wlan.status() != 3:
+        print(f'WLAN: cannot connect to {SSID} with status {wlan.status()}')
+    else:
+        print('connected')
+        status = wlan.ifconfig()
+        print( 'ip = ' + status[0] )
 
-if wlan.status() != 3:
-    print(f'WLAN: cannot connect to {SSID} with status {wlan.status()}')
-else:
-    print('connected')
-    status = wlan.ifconfig()
-    print( 'ip = ' + status[0] )
-
-# Prepare  indicator LED
-pin = Pin("LED", Pin.OUT)
-start_time = time.ticks_ms()
-while True:
-    if time.ticks_dif(time.ticks_ms(), start_time) >= BLINK_INTERVAL:
-        pin.toggle()
-        start_time = time.ticks_ms()
-    
+    # Prepare  indicator LED
+    pin = Pin("LED", Pin.OUT)
+    start_time = time.ticks_ms()
+    while True:
+        if time.ticks_dif(time.ticks_ms(), start_time) >= BLINK_INTERVAL:
+            pin.toggle()
+            start_time = time.ticks_ms()
+        
+if __name__ == '__main__':
+    run()

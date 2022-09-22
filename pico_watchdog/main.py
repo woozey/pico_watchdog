@@ -23,15 +23,59 @@ import time
 
 import network
 from machine import Pin
+from umqtt.simple import MQTTClient
 
 from connection_credentials import (SSID, WIFI_PASSWD, MQTT_PORT, MQTT_PASSWD,
                                     MQTT_SERVER, MQTT_USER)
+from watch_targets import WATCH_TOPICS
 
 WLAN_TIMEOUT = 5
 BLINK_INTERVAL = 500  # ms
 
 # Connect to WIFI
 def run(ssid=None, wifi_passwd=None):
+    wlan = wifi_connect(ssid, wifi_passwd)
+    mqtt = mqtt_connect()
+    for topic in WATCH_TOPICS:
+        mqtt.subscribe(topic)
+
+    # Prepare  indicator LED
+    pin = Pin("LED", Pin.OUT)
+    start_time = time.ticks_ms()
+    while True:
+        if time.ticks_diff(time.ticks_ms(), start_time) >= BLINK_INTERVAL:
+            pin.toggle()
+            start_time = time.ticks_ms()
+
+
+def mqtt_connect(mqtt_server=None,
+                 mqtt_port=None,
+                 mqtt_user=None,
+                 mqtt_passwd=None,
+                 client_id='pico_watchdog'):
+    if mqtt_server is None:
+        mqtt_server = MQTT_SERVER
+    if mqtt_port is None:
+        mqtt_port = MQTT_PORT
+    if mqtt_user is None:
+        mqtt_user = MQTT_USER
+    if mqtt_passwd is None:
+        mqtt_passwd = MQTT_PASSWD
+    
+    client = MQTTClient(client_id, mqtt_server, mqttkeepalive=3600)
+    client.set_callback(mqtt_callback)
+    client.connect()
+    print(f'MQTT: connected to {mqtt_server}.')
+    return client
+
+
+def mqtt_callback(topic, msg):
+    msg_time  = time.ticks_ms()
+    print(f'Time: {msg_time}')
+    print(f'Message in topic: {topic}')
+
+
+def wifi_connect(ssid, wifi_passwd):
     if ssid is None:
         ssid = SSID
     if wifi_passwd is None:
@@ -55,14 +99,7 @@ def run(ssid=None, wifi_passwd=None):
         print('connected')
         status = wlan.ifconfig()
         print( 'ip = ' + status[0] )
-
-    # Prepare  indicator LED
-    pin = Pin("LED", Pin.OUT)
-    start_time = time.ticks_ms()
-    while True:
-        if time.ticks_diff(time.ticks_ms(), start_time) >= BLINK_INTERVAL:
-            pin.toggle()
-            start_time = time.ticks_ms()
+    return wlan
         
 if __name__ == '__main__':
     run()

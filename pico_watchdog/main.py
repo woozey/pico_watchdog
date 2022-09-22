@@ -31,10 +31,14 @@ WLAN_TIMEOUT = 5
 BLINK_INTERVAL = 500  # ms
 
 # Connect to WIFI
-def run():
+def run(ssid=None, wifi_passwd=None):
+    if ssid is None:
+        ssid = SSID
+    if wifi_passwd is None:
+        wifi_passwd = WIFI_PASSWD
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
-    wlan.connect(SSID, WIFI_PASSWD)
+    wlan.connect(ssid, wifi_passwd)
 
     time_elapsed = 0
 
@@ -56,7 +60,7 @@ def run():
     pin = Pin("LED", Pin.OUT)
     start_time = time.ticks_ms()
     while True:
-        if time.ticks_dif(time.ticks_ms(), start_time) >= BLINK_INTERVAL:
+        if time.ticks_diff(time.ticks_ms(), start_time) >= BLINK_INTERVAL:
             pin.toggle()
             start_time = time.ticks_ms()
         

@@ -62,7 +62,11 @@ def mqtt_connect(mqtt_server=None,
     if mqtt_passwd is None:
         mqtt_passwd = MQTT_PASSWD
     
-    client = MQTTClient(client_id, mqtt_server, mqttkeepalive=3600)
+    client = MQTTClient(client_id,
+                        mqtt_server,
+                        port=mqtt_port,
+                        user=mqtt_user,
+                        password=mqtt_passwd)
     client.set_callback(mqtt_callback)
     client.connect()
     print(f'MQTT: connected to {mqtt_server}.')

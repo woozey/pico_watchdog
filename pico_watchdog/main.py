@@ -36,13 +36,13 @@ BLINK_INTERVAL = 500  # ms
 def run(ssid=None, wifi_passwd=None):
     wlan = wifi_connect(ssid, wifi_passwd)
     mqtt = mqtt_connect()
-    for topic in WATCH_TOPICS:
-        mqtt.subscribe(topic)
 
     # Prepare  indicator LED
     pin = Pin("LED", Pin.OUT)
     start_time = time.ticks_ms()
     while True:
+        for topic in WATCH_TOPICS:
+            mqtt.subscribe(topic)
         if time.ticks_diff(time.ticks_ms(), start_time) >= BLINK_INTERVAL:
             pin.toggle()
             start_time = time.ticks_ms()
